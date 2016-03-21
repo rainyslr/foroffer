@@ -18,6 +18,9 @@ void swap(int *var1,int *var2)
 
 int partion(int data[],int length,int start,int end)
 {
+	//从左边开始，最右边的数是哨兵，small纪录最近一个比哨兵小的元素应该存放的位置（当该索引值与
+	// 当前访问索引i相等，则说明前面的数都是比哨兵小的数，无需交换
+	// 否则需要将最近找到的比哨兵小的数挪至small
 	if(data == NULL || length < 0 || start < 0 || end >= length || start > length)
 		return -1;
 	int small  = start - 1;

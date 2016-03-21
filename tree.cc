@@ -351,6 +351,10 @@ void GetOrderSeq(istream& ins,int** pre_order,int** in_order)
 
 void CreateTreeOrderSeq(const string& in_file,int tree_num,int*** pre_order,int*** in_order)
 {
+	//此时输入文件的格式应该如下；
+// 	7 					//序列的数字数
+// 8 6 5 7 10 9 11		//先序
+// 5 6 7 8 9 10 11		//中序
 	ifstream inf(in_file.c_str());
 	if(!inf)
 		throw runtime_error("open input file error");
@@ -384,6 +388,45 @@ void PrintTree(BinaryTreeNode* root)
 			node_queue.push(NULL);
 			node_queue.push(NULL);
 			cout << "NULL ";
+			null_node_count ++;
+		} 
+		node_count ++;
+		if(node_count == (0x1 << deep))
+		{
+			if(null_node_count == node_count)
+				break;//本层节点全为空节点
+			node_count = 0;
+			null_node_count = 0;
+			deep ++;
+			cout << endl;
+		}
+		node_queue.pop();
+	}
+	cout << endl;
+}
+//题目为从上到下输出树，可以考虑是否输出换行（和面试官交流）
+void PrintTreeWithoutEmptyNode(BinaryTreeNode* root)
+{
+	if(!root)
+	{
+		cout << "empty tree" << endl;
+	}
+	queue<BinaryTreeNode*> node_queue;
+	node_queue.push(root);
+	int deep = 0,node_count = 0,null_node_count = 0;
+	while(!node_queue.empty())
+	{
+		BinaryTreeNode* current_node = node_queue.front();
+		if(current_node)
+		{
+			node_queue.push(current_node->m_pLeft);
+			node_queue.push(current_node->m_pRight);
+			cout << current_node->m_nValue << " ";
+		}
+		else
+		{
+			node_queue.push(NULL);
+			node_queue.push(NULL);
 			null_node_count ++;
 		} 
 		node_count ++;
@@ -578,20 +621,44 @@ void MirrorTree(BinaryTreeNode* root)
 	cout << endl;
 }
 
+//二叉搜索树：左子树的节点都比根小，右子树的节点都比根大。
+bool VerifySquenceOfBST(int sequence[],int length)
+{
+	if(!sequence || length <= 0)
+		throw runtime_error("arg error");
+	if(length == 1)
+		return true;
+	int root = sequence[length - 1];
+	int i = 0;
+	while(i < length - 1 && sequence[i] < root)
+		++ i;
+	if(i == length - 1)
+		return VerifySquenceOfBST(sequence,length - 1);
+	for(int j = i;j < length - 1;j ++)
+	{
+		if(sequence[j] <= root)
+			return false;
+	}
+	if(i == 0)
+		return VerifySquenceOfBST(sequence,length - 1);
+	return VerifySquenceOfBST(sequence,i) && VerifySquenceOfBST(sequence + i,length - i - 1);
+}
+
 int main()
 {
 	// int *pre_order_set,*in_order_set;
 	// CreateTreeOrderSeq("input.txt",1,&pre_order_set,&in_order_set);
 	int **pre_order_set,**in_order_set;
-	CreateTreeOrderSeq("input.txt",3,&pre_order_set,&in_order_set);
-	print(cout,*pre_order_set,8);
-	print(cout,*in_order_set,8);
-	// TestSizeofPointer();
-	print(cout,pre_order_set[1],3);
-	print(cout,in_order_set[1],3);
-	BinaryTreeNode* head = Construct(*pre_order_set,*in_order_set,8);
+	CreateTreeOrderSeq("input.txt",1,&pre_order_set,&in_order_set);
+	print(cout,*pre_order_set,7);
+	print(cout,*in_order_set,7);
+	// // TestSizeofPointer();
+	// print(cout,pre_order_set[1],3);
+	// print(cout,in_order_set[1],3);
+	BinaryTreeNode* head = Construct(*pre_order_set,*in_order_set,7);
 	PrintTree(head);
-	MirrorTree(head);
+	PrintTreeWithoutEmptyNode(head);
+	// MirrorTree(head);
 	// BinaryTreeNode* head2 = Construct(pre_order_set[1],in_order_set[1],3);
 	// PrintTree(head2);
 
@@ -607,6 +674,10 @@ int main()
 	// cout << ConstructPreOrder(head);
 	// cout << ConstructInOrder(head);
 	// cout << ConstructPostOrder(head);
+	int seq1[] = {5,7,6,9,11,10,8};
+	int seq2[] = {7,4,6,5};
+	cout << VerifySquenceOfBST(seq1,7) << endl;
+	cout << VerifySquenceOfBST(seq2,4) << endl;
 
 	// TestTreePrintFunc();
   	return 0;
