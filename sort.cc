@@ -44,6 +44,7 @@ void SelectionSorter(int* data,int length)
 	}
 }
 
+// 二路选择排序
 void TwoEleSelectionSorter(int *data,int length)
 {
 	if(!data || length <= 0)
@@ -270,22 +271,12 @@ void QuickSorter(int* data,int low,int high)
 	}
 }
 
+//直接插入排序
 void StraightInSertionSorter(int data[],int length)
 {
 	if(!data || length <= 0)
 		throw runtime_error("arg error");
 	int key,previous_index;
-	// for(int i = 1;i < length;++ i)
-	// {
-	// 	key = data[i];
-	// 	previous_index = i - 1;
-	// 	while(data[previous_index] > key && previous_index >= 0)
-	// 	{
-	// 		data[previous_index + 1] = data[previous_index];
-	// 		previous_index --;
-	// 	}
-	// 	data[previous_index + 1] = key;
-	// }
 	for(int i = 1;i < length;++ i)
 	{
 		key = data[i];
@@ -372,36 +363,21 @@ void ShellInsertSort(int data[],int length,int dk)
 {
 	//以dk对数组元素分组，对每一组数进行有序插入
 	//直接插入排序的时候，previous_index比i小1，此处变为小dk
+	// 和直接插入排序类似，只是逻辑上相邻的两个元素物理上相邻dk
 	int key;
-	// for(int j = 0;j < dk;++ j)
-	// {
-	// 	for(int i = dk + j;i < length;)
-	// 	{
-	// 		key = data[i];
-	// 		int previous_index = i - dk;
-	// 		while(data[previous_index] > key && previous_index >= 0)
-	// 		{
-	// 			data[previous_index + dk] = data[previous_index];
-	// 			previous_index -= dk;
-	// 		}
-	// 		data[previous_index + dk] = key;
-	// 		print(cout,data,length,i);
-	// 		i += dk;
-	// 	}
-	// }
-		for(int i = dk;i < length;)
+	for(int i = dk;i < length;)
+	{
+		key = data[i];
+		int previous_index = i - dk;
+		while(data[previous_index] > key && previous_index >= 0)
 		{
-			key = data[i];
-			int previous_index = i - dk;
-			while(data[previous_index] > key && previous_index >= 0)
-			{
-				data[previous_index + dk] = data[previous_index];
-				previous_index -= dk;
-			}
-			data[previous_index + dk] = key;
-			print(cout,data,length,i);
-			i += 1;
+			data[previous_index + dk] = data[previous_index];
+			previous_index -= dk;
 		}
+		data[previous_index + dk] = key;
+		print(cout,data,length,i);
+		i += 1;
+	}
 }
 
 void ShellSorter(int data[],int length)
@@ -417,6 +393,7 @@ void ShellSorter(int data[],int length)
 		
 	}
 }
+
 
 void Merge(int sourceArr[],int tempArr[], int startIndex, int midIndex, int endIndex)
 {
@@ -435,7 +412,7 @@ void Merge(int sourceArr[],int tempArr[], int startIndex, int midIndex, int endI
     for(i=startIndex; i<=endIndex; i++)
         sourceArr[i] = tempArr[i];
 }
- 
+
 //内部使用递归，二路归并算法
 void BinaryMergeSort(int sourceArr[], int tempArr[], int startIndex, int endIndex)
 {
@@ -454,24 +431,21 @@ void BinaryMergeSort(int sourceArr[], int tempArr[], int startIndex, int endInde
 void MergeSort(int sourceArr[], int tempArr[],int length)
 {
 	int len = 2,step = 1;
-	while(step < length)//实际上就是加上len时必须能覆盖完整个数组
+	while(step < length)
 	{
 		// cout << "len:" << len << endl;
 		
 		int i = 0;
+		//实际上就是数组中剩余没处理的数数目超过len，
 		while(i + len < length)
 		{
 			Merge(sourceArr,tempArr,i,i + step - 1,i + len - 1);
-			// cout << "start:"<< i << ",mid:" << i + step - 1 << ",end:" << i + len - 1 << endl;
-			// print(cout,sourceArr,10);
 			i += len;
 			
 		}
 		if(i + step < length)//剩下的数据长度大于step又小于len，所以还是需要合并
 		{
 			Merge(sourceArr,tempArr,i,i + step - 1,length- 1);
-			// cout << "Inequal,start:"<< i << ",mid:" << i + step - 1 << ",end:" << length - 1 << endl;
-			// print(cout,sourceArr,10);
 		}
 		len *= 2;
 		step = len / 2;

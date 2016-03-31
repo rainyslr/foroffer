@@ -32,73 +32,7 @@ BinaryTreeNode* AllocNode(void)
 	return node;
 }
 
-void PreOrderCore(BinaryTreeNode* root)
-{
-	stack<BinaryTreeNode*> left_tree;
-	BinaryTreeNode *node = root;
-process:
-	while(1)
-	{
-		cout << node->m_nValue << " ";
-		while(node->m_pLeft)
-		{
-			cout << node->m_pLeft->m_nValue << " ";
-			if(node->m_pRight)
-				left_tree.push(node->m_pRight);
-			node = node->m_pLeft;
-		}
-		if(node->m_pRight)
-		{
-			node = node->m_pRight;
-			goto process;
-		}
-		else
-		{
-			if(left_tree.empty())
-				break;
-			node = left_tree.top();
-			left_tree.pop();
-			goto process;
-		}
-	}
-}
 
-void InOrderCore(BinaryTreeNode* root)
-{
-	stack<BinaryTreeNode*> node_stack;
-	BinaryTreeNode *node = root;
-process:
-	while(1)
-	{
-		while(node->m_pLeft)
-		{
-			node_stack.push(node);
-			node = node->m_pLeft;
-		}
-		cout << node->m_nValue << " ";
-		if(node->m_pRight)
-		{
-			node = node->m_pRight;
-			goto process;
-		}
-		else
-		{
-			while(!node_stack.empty())
-			{
-				node = node_stack.top();
-				node_stack.pop();
-				if(node->m_pRight)
-				{
-					cout << node->m_nValue << " ";
-					node = node->m_pRight;
-					goto process;
-				}
-				else cout << node->m_nValue << " ";
-			}
-			break;
-		}
-	}
-}
 
 void BetterPreOrderCore(BinaryTreeNode* root,ostream& os)
 {
@@ -143,6 +77,8 @@ void BetterInOrderCore(BinaryTreeNode* root,ostream& os)
 }
 
 // 其实思考的时候既然想到了无法区分右子树是否已经访问，为何不想到添加一个标志位呢
+// 当从栈中弹出一个节点，如果该节点没有右子树则可以输出这个这个节点，且将其设置为last_visit；
+// 如果弹出的节点的右子节点已经访问，说明右子树已经遍历结束，也可直接输出该节点
 void BetterCPostOrderCore(BinaryTreeNode* root,ostream& os)
 {
 	stack<BinaryTreeNode*> node_stack;
@@ -207,12 +143,12 @@ string ConstructPreOrder(BinaryTreeNode* root)
 {
 	if(!root)
 		throw runtime_error("root pointer is null");
-	// PreOrderRecursiveCore(root);
+	
 	ostringstream order_stream;
 	BetterPreOrderCore(root,order_stream);
 	order_stream << '\n';
 	return order_stream.str();
-	// cout << pre_order_stream.str() << endl;
+
 }
 
 string ConstructInOrder(BinaryTreeNode* root)
@@ -237,7 +173,6 @@ string ConstructPostOrder(BinaryTreeNode* root)
 
 BinaryTreeNode* BetterConstructCore(int* start_pre,int* end_pre,int* start_in,int* end_in)
 {
-	// cout << *start_pre << " " << *end_pre << " " << *start_in << " " << *end_in << endl;
 	BinaryTreeNode* root_node = AllocNode();
 	int root_value = *start_pre;
 	root_node->m_nValue = root_value;
@@ -251,6 +186,8 @@ BinaryTreeNode* BetterConstructCore(int* start_pre,int* end_pre,int* start_in,in
 			throw runtime_error("order sequence error when just one node");
 	}
 	int *root_in_inorder = start_in;
+
+	// 在中序遍历序列中找到先序序列中的根
 	while(root_in_inorder <= end_in && (*root_in_inorder) != root_value)
 	{
 		root_in_inorder ++;
@@ -269,60 +206,6 @@ BinaryTreeNode* BetterConstructCore(int* start_pre,int* end_pre,int* start_in,in
 		root_node->m_pRight = BetterConstructCore(left_end_pre + 1,end_pre,root_in_inorder + 1,end_in);
 	}
 	return root_node;
-}
-
-BinaryTreeNode* ConstructCore(int* start_pre,int* end_pre,int* start_in,int* end_in)
-{
-	int *root = start_pre,*root_in_inorder;
-	if(!start_pre || !start_in || !end_in || !start_in)
-		return NULL;
-	while(root <= end_pre)
-	{
-		root_in_inorder = start_in;
-		while(root_in_inorder <= end_in)
-		{
-			if((*root) == (*root_in_inorder))
-				goto make;
-			root_in_inorder ++;
-		}
-		root ++;
-	}
-make:
-	if((*root) != (*root_in_inorder))
-	{
-		cout << "order sequence error";
-		return NULL;
-	}
-	else
-	{
-		BinaryTreeNode *root_node = AllocNode();
-		root_node->m_nValue = *root;
-		int *left_end_in,*right_start_in,*new_start_pre;
-		if(*root == *start_in)
-		{
-			//左子树空
-			left_end_in = NULL;
-		}
-		else
-		{
-			left_end_in = (root_in_inorder - 1);
-		}
-		if(*root == *end_in)
-		{
-			//右子树空
-			right_start_in = NULL;
-		}
-		else right_start_in = (root_in_inorder + 1);;
-		if(*root == *end_pre)
-		{
-			//结束
-			new_start_pre = NULL;
-		}	
-		else new_start_pre = root + 1;
-		root_node->m_pLeft = ConstructCore(new_start_pre,end_pre,start_in,left_end_in);
-		root_node->m_pRight =  ConstructCore(new_start_pre,end_pre,right_start_in,end_in);
-		return root_node;
-	}
 }
 
 BinaryTreeNode* Construct(int* preorder,int* inorder,int length)
@@ -621,6 +504,9 @@ void MirrorTree(BinaryTreeNode* root)
 	cout << endl;
 }
 
+
+
+// 输入一棵树的后序遍历序列，判断是否为二叉搜索树
 //二叉搜索树：左子树的节点都比根小，右子树的节点都比根大。
 bool VerifySquenceOfBST(int sequence[],int length)
 {
@@ -633,14 +519,14 @@ bool VerifySquenceOfBST(int sequence[],int length)
 	while(i < length - 1 && sequence[i] < root)
 		++ i;
 	if(i == length - 1)
-		return VerifySquenceOfBST(sequence,length - 1);
+		return VerifySquenceOfBST(sequence,length - 1);//右子树为空
 	for(int j = i;j < length - 1;j ++)
 	{
 		if(sequence[j] <= root)
 			return false;
 	}
 	if(i == 0)
-		return VerifySquenceOfBST(sequence,length - 1);
+		return VerifySquenceOfBST(sequence,length - 1);//左子树为空
 	return VerifySquenceOfBST(sequence,i) && VerifySquenceOfBST(sequence + i,length - i - 1);
 }
 
@@ -648,16 +534,16 @@ int main()
 {
 	// int *pre_order_set,*in_order_set;
 	// CreateTreeOrderSeq("input.txt",1,&pre_order_set,&in_order_set);
-	int **pre_order_set,**in_order_set;
-	CreateTreeOrderSeq("input.txt",1,&pre_order_set,&in_order_set);
-	print(cout,*pre_order_set,7);
-	print(cout,*in_order_set,7);
+	// int **pre_order_set,**in_order_set;
+	// CreateTreeOrderSeq("input.txt",1,&pre_order_set,&in_order_set);
+	// print(cout,*pre_order_set,7);
+	// print(cout,*in_order_set,7);
 	// // TestSizeofPointer();
 	// print(cout,pre_order_set[1],3);
 	// print(cout,in_order_set[1],3);
-	BinaryTreeNode* head = Construct(*pre_order_set,*in_order_set,7);
-	PrintTree(head);
-	PrintTreeWithoutEmptyNode(head);
+	// BinaryTreeNode* head = Construct(*pre_order_set,*in_order_set,7);
+	// PrintTree(head);
+	// PrintTreeWithoutEmptyNode(head);
 	// MirrorTree(head);
 	// BinaryTreeNode* head2 = Construct(pre_order_set[1],in_order_set[1],3);
 	// PrintTree(head2);
@@ -674,11 +560,13 @@ int main()
 	// cout << ConstructPreOrder(head);
 	// cout << ConstructInOrder(head);
 	// cout << ConstructPostOrder(head);
-	int seq1[] = {5,7,6,9,11,10,8};
-	int seq2[] = {7,4,6,5};
-	cout << VerifySquenceOfBST(seq1,7) << endl;
-	cout << VerifySquenceOfBST(seq2,4) << endl;
+	// int seq1[] = {5,7,6,9,11,10,8};
+	// int seq2[] = {7,4,6,5};
+	// cout << VerifySquenceOfBST(seq1,7) << endl;
+	// cout << VerifySquenceOfBST(seq2,4) << endl;
 
 	// TestTreePrintFunc();
+	BinaryTreeNode* root = CreateBinarySortingTree(cin);
+	PrintTree(root);
   	return 0;
 }
